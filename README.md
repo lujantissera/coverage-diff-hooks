@@ -4,11 +4,15 @@
 modified lines** it contains are not covered by tests. Legacy code you did not
 touch is exempt.
 
-Currently available: `coverage-diff-python` (pytest + coverage.py + diff-cover).
+| Hook | Stack | Status |
+|---|---|---|
+| `coverage-diff-python` | pytest + pytest-cov + diff-cover | Tested (tag `v0.1.0` is the last validated release) |
+| `coverage-diff-php` | PHPUnit + PCOV/Xdebug + diff-cover | **Experimental: not yet tested in a real project** |
 
 ## How it works
 
-1. Runs your project's `pytest` with coverage and writes `coverage.xml` (Cobertura).
+1. Runs your project's tests with coverage and writes a report
+   (`coverage.xml` for Python, `build/logs/clover.xml` for PHP).
 2. Runs [diff-cover](https://github.com/Bachmann1234/diff_cover) to compare that
    report against your staged changes.
 3. If any new/modified line is uncovered, the commit is blocked.
@@ -21,15 +25,16 @@ Currently available: `coverage-diff-python` (pytest + coverage.py + diff-cover).
 pip install pre-commit
 ```
 
-### 2. Install in your project's virtualenv
+### 2. Make sure your project has its test tooling
 
-```bash
-pip install pytest pytest-cov
-```
+- **Python:** `pip install pytest pytest-cov` in your project's virtualenv.
+  The hook runs the `pytest` found on your `PATH`, so **activate the virtualenv
+  before committing**.
+- **PHP:** PHPUnit (`vendor/bin/phpunit`) and a coverage driver (PCOV or Xdebug)
+  loaded in PHP.
 
-The hook runs the `pytest` found on your `PATH`, so **activate your project's
-virtualenv before committing**. `diff-cover` does not need to be installed: pre-commit
-installs it automatically in an isolated environment.
+`diff-cover` does not need to be installed: pre-commit installs it automatically
+in an isolated environment.
 
 ### 3. Add the hook to `.pre-commit-config.yaml`
 
@@ -49,36 +54,61 @@ Always pin `rev` to a tag (never a branch), so upgrades are explicit.
 pre-commit install
 ```
 
-From now on, every `git commit` that touches `.py` files runs the check.
+From now on, every `git commit` that touches matching files runs the check.
+
+## Configuration (`args`)
+
+Options are passed per project through `args` in `.pre-commit-config.yaml`:
+
+```yaml
+    hooks:
+      - id: coverage-diff-php
+        args: [--exclude, "vendor/*", --exclude, "Test/*", --fail-under, "100"]
+```
+
+| Option | Default | Applies to | Notes |
+|---|---|---|---|
+| `--fail-under N` | `100` | both | % of the diff that must be covered. Do not lower without asking the team. |
+| `--compare-branch REF` | `HEAD` | both | Ref the diff is computed against. |
+| `--exclude GLOB` | none | both | Repeatable. Files matching it are ignored. |
+| `--phpunit PATH` | `vendor/bin/phpunit` | PHP | |
+| `--phpunit-config PATH` | `phpunit.xml` | PHP | |
+| `--clover PATH` | `build/logs/clover.xml` | PHP | |
+
+Environment variables (override defaults; `args` override them):
+`COVERAGE_DIFF_FAIL_UNDER`, `COVERAGE_DIFF_COMPARE_REF`, `PHP_COVERAGE_ARGS`
+(extra flags passed to `php`, PHP hook only).
 
 ## Behavior
 
 | Situation | Result |
 |---|---|
-| Commit touches no `.py` files | Passes, nothing runs |
+| Commit touches no files of the hook's language | Passes, nothing runs |
 | Repo has no commits yet | Passes, check skipped |
 | Your tests fail | Blocked |
 | New/modified lines uncovered | Blocked, with a table of missing lines |
 | `diff-cover` finds no coverage info (false green) | Blocked |
 | `diff-cover` crashes | Blocked, with a message saying it is not a coverage problem |
+| PHP: no PCOV/Xdebug loaded | Blocked |
+| PHP: staged file missing from the Clover report | Blocked (check `<coverage><include>` in `phpunit.xml`) |
 
-Required coverage on the diff is **100%**. Do not lower it without asking the team.
+The hooks never run `git commit` or `git push`.
 
 ## Emergency escape hatch
 
 ```bash
-SKIP=coverage-diff-python git commit -m "..."
+SKIP=coverage-diff-python git commit -m "..."   # or coverage-diff-php
 ```
 
 Use it only when you genuinely cannot test those lines, and tell your team.
 
-## Limitations (v0.1.0)
+## Limitations
 
-- Threshold (100%), compare ref (`HEAD`) and excluded folders are fixed in the code.
-  Configuration through `.coverage-diff.yml` / environment variables is planned.
 - Only staged changes are measured (`--ignore-unstaged`).
-- No PHP hook yet.
-- Windows path normalization is not implemented; it has not been needed so far.
+- The PHP hook has only been written, not run against a real project yet
+  (see `STATUS.md`).
+- Windows path normalization (case and `\` vs `/`) is applied only when checking
+  that staged files appear in the PHP Clover report.
 
 ## Troubleshooting
 

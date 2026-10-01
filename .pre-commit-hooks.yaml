@@ -1,3 +1,13 @@
+- id: coverage-diff-php
+  name: Coverage diff (PHP)
+  description: Blocks commits whose new/modified PHP lines lack test coverage.
+  entry: coverage-diff-php
+  language: python
+  files: \.php$
+  pass_filenames: false
+  require_serial: true
+  verbose: true
+
 - id: coverage-diff-python
   name: Coverage diff (Python)
   description: Blocks commits whose new/modified Python lines lack test coverage.

@@ -13,7 +13,8 @@ dependencies = [
 ]
 
 [project.scripts]
-coverage-diff-python = "coverage_diff_hooks.python_hook:main"
+coverage-diff-php = "coverage_diff_hooks.php_hook:main"
+coverage-diff-python ="coverage_diff_hooks.python_hook:main"
 
 [tool.setuptools]
 packages = ["coverage_diff_hooks"]

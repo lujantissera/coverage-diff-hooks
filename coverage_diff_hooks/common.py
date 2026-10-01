@@ -6,8 +6,11 @@ import subprocess
 RED, YELLOW, CYAN, BOLD, RESET = "\033[0;31m", "\033[1;33m", "\033[1;36m", "\033[1m", "\033[0m"
 
 
-def parse_args(argv=None):
-    """Options a consumer project can pass through `args:` in .pre-commit-config.yaml."""
+def parse_args(argv=None, configure=None):
+    """Options a consumer project can pass through `args:` in .pre-commit-config.yaml.
+
+    `configure` lets a hook register extra, language-specific options.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--fail-under", type=int,
@@ -21,7 +24,14 @@ def parse_args(argv=None):
         "--exclude", action="append", default=[],
         help="glob to ignore, can be repeated",
     )
+    if configure:
+        configure(parser)
     return parser.parse_args(argv)
+
+
+def normalize_path(path):
+    """Lowercase and use `/`, so report paths and git paths can be compared (Windows)."""
+    return path.replace("\\", "/").lower()
 
 
 def staged_files(extension, exclude):
