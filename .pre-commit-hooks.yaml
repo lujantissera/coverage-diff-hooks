@@ -1,0 +1,7 @@
+- id: coverage-diff-python
+  name: Coverage diff (Python)
+  description: Blocks commits whose new/modified Python lines lack test coverage.
+  entry: coverage-diff-python
+  language: python
+  files: \.py$
+  pass_filenames: false
