@@ -1,96 +1,35 @@
 import subprocess
 import sys
 
+from coverage_diff_hooks.common import (
+    has_commits, parse_args, report_result, run_diff_cover, staged_files,
+)
 
-RED, YELLOW, CYAN, BOLD, RESET = "\033[0;31m", "\033[1;33m", "\033[1;36m", "\033[1m", "\033[0m"
-
-
-def block_message():
-    return f"""
-{RED}================================================================{RESET}
-{RED}{BOLD}  COMMIT BLOCKED: new lines without tests{RESET}
-{RED}================================================================{RESET}
-Look at the table above: file + "Missing lines".
-
-{CYAN}{BOLD}>> Want it done for you? Ask the agent /TestCreator to write the test for your new function. <<{RESET}
-
-How to get out of this manually instead:
-  1. Open the file at those lines.
-  2. Write a test that exercises them.
-  3. Commit again.
-  4. If those lines genuinely can't be tested, discuss it with the
-     team before touching the threshold (fail-under is not lowered
-     without asking).
-
-  {YELLOW}Emergency escape hatch: SKIP=coverage-diff-python git commit -m "..."{RESET}
-{RED}================================================================{RESET}
-"""
-
-
-def staged_python_files():
-    """Return the staged .py files (added, copied, modified, renamed)."""
-    result = subprocess.run(
-        ["git", "diff", "--cached", "--name-only", "--diff-filter=ACMR"],
-        capture_output=True, text=True, check=True,
-    )
-    files = result.stdout.splitlines()
-    return [f for f in files if f.endswith(".py")]
-
-
-def has_commits():
-    """Return True if the repo already has at least one commit."""
-    result = subprocess.run(
-        ["git", "rev-parse", "--verify", "--quiet", "HEAD"],
-        capture_output=True,
-    )
-    return result.returncode == 0
+HOOK_ID = "coverage-diff-python"
+REPORT = "coverage.xml"
 
 
 def run_tests_with_coverage():
     """Run the project's pytest and write coverage.xml (Cobertura format)."""
     result = subprocess.run(
-        ["pytest", "--cov", "--cov-report=xml:coverage.xml", "-q"],
+        ["pytest", "--cov", f"--cov-report=xml:{REPORT}", "-q"],
     )
     return result.returncode
 
 
-def run_diff_cover(fail_under=100):
-    """Run diff-cover on the staged changes. Return (exit_code, output)."""
-    result = subprocess.run(
-        [
-            "diff-cover", "coverage.xml",
-            f"--fail-under={fail_under}",
-            "--compare-branch=HEAD",
-            "--ignore-unstaged",
-        ],
-        capture_output=True, text=True,
-    )
-    output = result.stdout + result.stderr
-    if result.returncode == 0 and "No lines with coverage information" in output:
-        return 1, output  # false green: treat as error
-    return result.returncode, output
-
-
-def main():
-    if not staged_python_files():
-        print("coverage-diff-python: no Python files staged, skipping.")
+def main(argv=None):
+    args = parse_args(argv)
+    if not staged_files(".py", args.exclude):
+        print(f"{HOOK_ID}: no Python files staged, skipping.")
         return 0
     if not has_commits():
-        print("coverage-diff-python: repo has no commits yet, skipping.")
+        print(f"{HOOK_ID}: repo has no commits yet, skipping.")
         return 0
     if run_tests_with_coverage() != 0:
-        print("coverage-diff-python: tests failed.")
+        print(f"{HOOK_ID}: tests failed.")
         return 1
-    code, output = run_diff_cover()
-    print(output)
-    if "Traceback" in output:
-        print("coverage-diff-python: diff-cover crashed (not a coverage problem). See output above.")
-        return 1
-    if code != 0:
-        print(block_message())
-        return 1
-    print("coverage-diff-python: OK, diff coverage meets the threshold.")
-    return 0
+    code, output = run_diff_cover(REPORT, args.fail_under, args.compare_branch, args.exclude)
+    return report_result(HOOK_ID, code, output, args.fail_under)
 
 
 if __name__ == "__main__":
