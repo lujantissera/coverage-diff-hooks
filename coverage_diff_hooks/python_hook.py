@@ -37,6 +37,15 @@ def staged_python_files():
     return [f for f in files if f.endswith(".py")]
 
 
+def has_commits():
+    """Return True if the repo already has at least one commit."""
+    result = subprocess.run(
+        ["git", "rev-parse", "--verify", "--quiet", "HEAD"],
+        capture_output=True,
+    )
+    return result.returncode == 0
+
+
 def run_tests_with_coverage():
     """Run the project's pytest and write coverage.xml (Cobertura format)."""
     result = subprocess.run(
@@ -66,11 +75,17 @@ def main():
     if not staged_python_files():
         print("coverage-diff-python: no Python files staged, skipping.")
         return 0
+    if not has_commits():
+        print("coverage-diff-python: repo has no commits yet, skipping.")
+        return 0
     if run_tests_with_coverage() != 0:
         print("coverage-diff-python: tests failed.")
         return 1
     code, output = run_diff_cover()
     print(output)
+    if "Traceback" in output:
+        print("coverage-diff-python: diff-cover crashed (not a coverage problem). See output above.")
+        return 1
     if code != 0:
         print(block_message())
         return 1

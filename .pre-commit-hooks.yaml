@@ -5,3 +5,5 @@
   language: python
   files: \.py$
   pass_filenames: false
+  require_serial: true
+  verbose: true
