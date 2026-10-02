@@ -4,7 +4,7 @@ import subprocess
 import sys
 
 from coverage_diff_hooks.common import (
-    has_commits, normalize_path, parse_args, report_result, run_diff_cover, staged_files,
+    changed_files, has_commits, normalize_path, parse_args, report_result, run_diff_cover,
 )
 
 HOOK_ID = "coverage-diff-php"
@@ -47,9 +47,9 @@ def files_missing_from_report(files, clover):
 
 def main(argv=None):
     args = parse_args(argv, configure=add_php_args)
-    files = staged_files(".php", args.exclude)
+    files = changed_files(".php", args.exclude)
     if not files:
-        print(f"{HOOK_ID}: no PHP files staged, skipping.")
+        print(f"{HOOK_ID}: no PHP files changed, skipping.")
         return 0
     if not has_commits():
         print(f"{HOOK_ID}: repo has no commits yet, skipping.")

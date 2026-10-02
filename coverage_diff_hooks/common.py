@@ -34,10 +34,25 @@ def normalize_path(path):
     return path.replace("\\", "/").lower()
 
 
-def staged_files(extension, exclude):
-    """Staged files with the given extension, minus the excluded globs."""
+def diff_range():
+    """(from_ref, to_ref) when pre-commit runs at the pre-push stage, else None.
+
+    pre-commit sets these variables for pre-push (and for `--from-ref/--to-ref`).
+    """
+    from_ref = os.environ.get("PRE_COMMIT_FROM_REF")
+    to_ref = os.environ.get("PRE_COMMIT_TO_REF")
+    if from_ref and to_ref:
+        return from_ref, to_ref
+    return None
+
+
+def changed_files(extension, exclude):
+    """Files in this commit (or in the push, at pre-push) with the given extension,
+    minus the excluded globs."""
+    ref_range = diff_range()
+    scope = [f"{ref_range[0]}...{ref_range[1]}"] if ref_range else ["--cached"]
     result = subprocess.run(
-        ["git", "diff", "--cached", "--name-only", "--diff-filter=ACMR"],
+        ["git", "diff", *scope, "--name-only", "--diff-filter=ACMR"],
         capture_output=True, text=True, check=True,
     )
     files = [f for f in result.stdout.splitlines() if f.endswith(extension)]
@@ -58,6 +73,9 @@ def run_diff_cover(reports, fail_under, compare_branch, exclude):
 
     `reports` is a list of coverage report paths; diff-cover merges them.
     """
+    ref_range = diff_range()
+    if ref_range:
+        compare_branch = ref_range[0]  # at pre-push, compare against what the remote has
     command = [
         "diff-cover", *reports,
         f"--fail-under={fail_under}",
