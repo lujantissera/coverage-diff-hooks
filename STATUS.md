@@ -1,6 +1,6 @@
 # Project status
 
-Last updated: 2026-10-01.
+Last updated: 2026-10-02.
 
 ## Goal
 
@@ -33,35 +33,21 @@ coverage_diff_hooks/
   information"), English colored block message with `/TestCreator` and `SKIP=<id>`,
   default threshold 100, `--ignore-unstaged`, never commits or pushes.
 
-## Written but NOT tested
+## PHP hook: validated
 
-- `coverage-diff-php` (`php_hook.py`). Ported from `check-diff-coverage.sh`: PCOV/Xdebug
-  check, PHPUnit with `--coverage-clover`, staged-file-in-report check with path
-  normalization, then diff-cover. It has never been run.
-- Not released: no tag includes it. Tag it (suggested `v0.2.0`) only after it passes a
-  real test.
+- `coverage-diff-php` (`php_hook.py`) was tested in SuiteCRM using commit `45cc409`
+  as `rev`, and the checks passed. Released as tag `v0.2.0`.
+- SuiteCRM should now pin `rev: v0.2.0` instead of the commit hash.
 
 ## Next steps
 
-1. Test `coverage-diff-php` in a real PHP project (SuiteCRM). Suggested config there:
-   ```yaml
-   - repo: https://github.com/lujantissera/coverage-diff-hooks.git
-     rev: <commit hash until v0.2.0 exists>
-     hooks:
-       - id: coverage-diff-php
-         args: [--exclude, "vendor/*", --exclude, "Test/*",
-                --exclude, "SugarModules/Test/*"]
-   ```
-   Check in particular: the `files_missing_from_report` check against the real Clover
-   paths, `--exclude` matching with `fnmatch` (it does not treat `/` specially), and
-   running through Git Bash on Windows.
-2. Fix whatever the real test shows, then tag `v0.2.0`.
-3. Migrate SuiteCRM from `repo: local` to this repo. Note the hook id changes from
-   `php-diff-coverage` to `coverage-diff-php`, so the `SKIP=` hint changes too. Keep
-   the local script until the migration is verified.
-4. Add `tests/` to this repo (e.g. `normalize_path`, `staged_files`, `parse_args`).
-5. Create the `/TestCreator` skill in each consuming repo (not in this repo).
-6. Later: hooks for other languages (Java, Node). When more than ~3 languages exist,
+1. In SuiteCRM: change `rev` from the hash to `v0.2.0`, then (once verified) delete
+   `bin/check-diff-coverage.sh` and update docs/CI that mention `php-diff-coverage`
+   or `SKIP=php-diff-coverage` (the hook id is now `coverage-diff-php`).
+2. Add `tests/` to this repo (e.g. `normalize_path`, `staged_files`, `parse_args`).
+3. Create the `/TestCreator` skill in each consuming repo (not in this repo).
+4. Migrate the Python project(s) (QEngine) to `coverage-diff-python` at `v0.2.0`.
+5. Later: hooks for other languages (Java, Node). When more than ~3 languages exist,
    consider moving language hooks into `coverage_diff_hooks/languages/`.
 
 ## Known caveats

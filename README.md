@@ -6,8 +6,8 @@ touch is exempt.
 
 | Hook | Stack | Status |
 |---|---|---|
-| `coverage-diff-python` | pytest + pytest-cov + diff-cover | Tested (tag `v0.1.0` is the last validated release) |
-| `coverage-diff-php` | PHPUnit + PCOV/Xdebug + diff-cover | **Experimental: not yet tested in a real project** |
+| `coverage-diff-python` | pytest + pytest-cov + diff-cover | Tested |
+| `coverage-diff-php` | PHPUnit + PCOV/Xdebug + diff-cover | Tested in SuiteCRM (from `v0.2.0`) |
 
 ## How it works
 
@@ -41,7 +41,7 @@ in an isolated environment.
 ```yaml
 repos:
   - repo: https://github.com/lujantissera/coverage-diff-hooks.git
-    rev: v0.1.0
+    rev: v0.2.0
     hooks:
       - id: coverage-diff-python
 ```
@@ -105,8 +105,6 @@ Use it only when you genuinely cannot test those lines, and tell your team.
 ## Limitations
 
 - Only staged changes are measured (`--ignore-unstaged`).
-- The PHP hook has only been written, not run against a real project yet
-  (see `STATUS.md`).
 - Windows path normalization (case and `\` vs `/`) is applied only when checking
   that staged files appear in the PHP Clover report.
 
