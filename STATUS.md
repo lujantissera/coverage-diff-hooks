@@ -1,6 +1,6 @@
 # Project status
 
-Last updated: 2026-10-02.
+Last updated: 2026-10-02 (v0.3.0 in progress).
 
 ## Goal
 
@@ -18,6 +18,8 @@ coverage_diff_hooks/
   common.py                   shared: args, staged files, diff-cover call, messages, guards
   python_hook.py              pytest + pytest-cov
   php_hook.py                 PHPUnit + PCOV/Xdebug
+  install_skill.py            copies the test-creator skill into a project
+  skills/test-creator/        optional Claude Code skill (SKILL.md + references/)
 ```
 
 ## Done and validated
@@ -39,15 +41,31 @@ coverage_diff_hooks/
   as `rev`, and the checks passed. Released as tag `v0.2.0`.
 - SuiteCRM should now pin `rev: v0.2.0` instead of the commit hash.
 
+## In progress for v0.3.0: the test-creator skill
+
+- Generic skill shipped inside the package: `coverage_diff_hooks/skills/test-creator/`
+  (`SKILL.md` + `references/php.md` + `references/python.md`). Project-specific rules go
+  in each consumer's `.claude/test-creator.md` (SuiteCRM's stubs/BeanFactory rules belong there).
+- Installer command `coverage-diff-install-skill` (`install_skill.py`): copies the skill
+  to `.claude/skills/test-creator/` of the current project, refuses to overwrite without
+  `--force`. Packaging verified in a throwaway venv: the 3 skill files are installed.
+- Block message now says `/test-creator` (the invocation name comes from the skill's
+  `name` field per the Claude Code docs; CamelCase `/TestCreator` is not the convention).
+- NOT yet validated in a real project: that `/test-creator` is actually invocable after
+  install, and the quality of the tests it writes. Test in QAgent using the commit hash
+  as `rev`, then tag `v0.3.0` (and bump `version` in `pyproject.toml`, still 0.2.0).
+
 ## Next steps
 
-1. In SuiteCRM: change `rev` from the hash to `v0.2.0`, then (once verified) delete
-   `bin/check-diff-coverage.sh` and update docs/CI that mention `php-diff-coverage`
-   or `SKIP=php-diff-coverage` (the hook id is now `coverage-diff-php`).
-2. Add `tests/` to this repo (e.g. `normalize_path`, `staged_files`, `parse_args`).
-3. Create the `/TestCreator` skill in each consuming repo (not in this repo).
-4. Migrate the Python project(s) (QEngine) to `coverage-diff-python` at `v0.2.0`.
-5. Later: hooks for other languages (Java, Node). When more than ~3 languages exist,
+1. Install the skill in QAgent, create its `.claude/test-creator.md`, provoke a block and
+   run `/test-creator`. Fix what shows up, then bump the version and tag `v0.3.0`.
+2. In SuiteCRM: replace its local TestCreator skill with the shared one and move its
+   project-specific rules (`Test/Unit/`, `Test/_stubs/`, BeanFactory, safety rules) to
+   `.claude/test-creator.md`. Delete `bin/check-diff-coverage.sh` if not done yet.
+3. Add `tests/` to this repo (e.g. `normalize_path`, `staged_files`, `parse_args`).
+4. Migrate the Python project(s) (QEngine, QAgent) to `coverage-diff-python`.
+5. Remove the unused `pyyaml` dependency from `pyproject.toml`.
+6. Later: hooks for other languages (Java, Node). When more than ~3 languages exist,
    consider moving language hooks into `coverage_diff_hooks/languages/`.
 
 ## Known caveats

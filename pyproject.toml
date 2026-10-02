@@ -13,8 +13,12 @@ dependencies = [
 ]
 
 [project.scripts]
-coverage-diff-php = "coverage_diff_hooks.php_hook:main"
+coverage-diff-install-skill = "coverage_diff_hooks.install_skill:main"
+coverage-diff-php ="coverage_diff_hooks.php_hook:main"
 coverage-diff-python ="coverage_diff_hooks.python_hook:main"
 
 [tool.setuptools]
 packages = ["coverage_diff_hooks"]
+
+[tool.setuptools.package-data]
+coverage_diff_hooks = ["skills/**/*.md"]

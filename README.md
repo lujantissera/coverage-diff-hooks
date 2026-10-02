@@ -79,6 +79,36 @@ Environment variables (override defaults; `args` override them):
 `COVERAGE_DIFF_FAIL_UNDER`, `COVERAGE_DIFF_COMPARE_REF`, `PHP_COVERAGE_ARGS`
 (extra flags passed to `php`, PHP hook only).
 
+## Optional: the `/test-creator` skill
+
+When a commit is blocked, the message suggests `/test-creator`: a
+[Claude Code](https://claude.com/claude-code) skill that writes the missing test.
+It is optional; the hooks work without it. The skill ships inside this repo and is
+**not** installed automatically.
+
+Install it once per project, from the project's root, in one of two ways:
+
+```bash
+# Option A: with the installer (adds this package to the active environment)
+pip install git+https://github.com/lujantissera/coverage-diff-hooks.git@<tag-or-commit>
+coverage-diff-install-skill          # add --force to overwrite an existing copy
+pip uninstall coverage-diff-hooks    # optional, once installed
+
+# Option B: copy by hand
+# copy coverage_diff_hooks/skills/test-creator/ from this repo to <project>/.claude/skills/test-creator/
+```
+
+How it works:
+
+- `SKILL.md` holds the generic workflow and quality rules (tests must assert real
+  behavior; a green gate is not enough). It never touches production code and never commits.
+- `references/php.md` and `references/python.md` hold the language conventions; the
+  skill reads the one that matches the hook that blocked the commit.
+- A project can add its own rules in `.claude/test-creator.md`: where tests live, which
+  support files may be edited, a reference test to imitate, project-specific safety rules.
+
+Review every generated test before committing: the AI writes it, you approve it.
+
 ## Behavior
 
 | Situation | Result |

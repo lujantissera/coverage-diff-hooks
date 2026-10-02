@@ -77,7 +77,7 @@ def block_message(hook_id):
 {RED}================================================================{RESET}
 Look at the table above: file + "Missing lines".
 
-{CYAN}{BOLD}>> Want it done for you? Ask the agent /TestCreator to write the test for your new function. <<{RESET}
+{CYAN}{BOLD}>> Want it done for you? Ask the agent /test-creator to write the test for your new function. <<{RESET}
 
 How to get out of this manually instead:
   1. Open the file at those lines.
