@@ -53,10 +53,13 @@ def has_commits():
     return result.returncode == 0
 
 
-def run_diff_cover(report, fail_under, compare_branch, exclude):
-    """Run diff-cover on the staged changes. Return (exit_code, output)."""
+def run_diff_cover(reports, fail_under, compare_branch, exclude):
+    """Run diff-cover on the staged changes. Return (exit_code, output).
+
+    `reports` is a list of coverage report paths; diff-cover merges them.
+    """
     command = [
-        "diff-cover", report,
+        "diff-cover", *reports,
         f"--fail-under={fail_under}",
         f"--compare-branch={compare_branch}",
         "--ignore-unstaged",

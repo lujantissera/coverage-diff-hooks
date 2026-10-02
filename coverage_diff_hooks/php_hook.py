@@ -66,7 +66,7 @@ def main(argv=None):
             print(f"{HOOK_ID}: ERROR: '{f}' does not appear in the coverage report.")
         print("Its folder may be missing from <coverage><include> in your phpunit.xml.")
         return 1
-    code, output = run_diff_cover(args.clover, args.fail_under, args.compare_branch, args.exclude)
+    code, output = run_diff_cover([args.clover], args.fail_under, args.compare_branch, args.exclude)
     return report_result(HOOK_ID, code, output, args.fail_under)
 
 
