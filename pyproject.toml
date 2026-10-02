@@ -7,6 +7,12 @@ name = "coverage-diff-hooks"
 version = "0.3.0"
 description = "pre-commit hooks that enforce test coverage on new/modified lines only."
 requires-python = ">=3.9"
+readme = "README.md"
+authors = [{ name = "Lujan Tissera" }]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+]
 dependencies = [
     "diff-cover>=9",
     "pyyaml>=6",

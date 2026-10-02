@@ -22,7 +22,7 @@ not touch is exempt.
 The hook does not know where your tests live or how you run them: **you tell it in
 your `.pre-commit-config.yaml`** (see "Which case is my project?").
 
-## New developer? Start here
+## Getting started
 
 ### Once per machine
 
@@ -126,7 +126,7 @@ be inside `<coverage><include>` of your `phpunit.xml`.
 
 | Option | Default | Hook | Notes |
 |---|---|---|---|
-| `--fail-under N` | `100` | both | % of the diff that must be covered. Do not lower without asking the team. |
+| `--fail-under N` | `100` | both | % of the diff that must be covered. Lowering it weakens the gate. |
 | `--compare-branch REF` | `HEAD` | both | Ref the diff is computed against. Ignored at pre-push (uses the pushed range). |
 | `--exclude GLOB` | none | both | Repeatable. Matching files are ignored. |
 | `--run "CMD"` | `pytest --cov --cov-report=xml:coverage.xml -q` | Python | Test command that always runs. Repeatable. |
@@ -210,6 +210,12 @@ Use it only when you genuinely cannot test those lines, and tell your team.
 - Measured lines come from `git diff`; renamed or moved files may count as new code.
 - Windows path normalization (case and `\` vs `/`) is applied only when checking
   that changed files appear in the PHP Clover report.
+- Early-stage project (`v0.3.x`): the PHP hook has so far been validated on a single
+  real project (SuiteCRM). Feedback and issues are welcome.
+
+## License
+
+[MIT](LICENSE) © 2026 Lujan Tissera
 
 ## Troubleshooting
 
