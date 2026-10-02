@@ -51,14 +51,31 @@ coverage_diff_hooks/
   `--force`. Packaging verified in a throwaway venv: the 3 skill files are installed.
 - Block message now says `/test-creator` (the invocation name comes from the skill's
   `name` field per the Claude Code docs; CamelCase `/TestCreator` is not the convention).
+- Python hook options added after the first QAgent trial (QAgent keeps tests in
+  `src/tests.py` and `src/test_worker.py`, two suites, two reports; the default
+  `pytest` run found neither the app suite nor a single report):
+  `--run` (custom test commands), `--report` (one or many Cobertura reports, merged),
+  `--suite "<globs>::<cmd>::<report>"` (run only suites affected by the changed files).
+- pre-push support: when pre-commit sets `PRE_COMMIT_FROM_REF/TO_REF`, the changed
+  files come from `git diff FROM...TO` and diff-cover compares against FROM.
+  Install with `pre-commit install --hook-type pre-push`.
+- Clear error when a test command is not found (instead of a traceback).
+- Verified in the throwaway demo: `--run`/`--report` (2 suites, 2 reports), `--suite`
+  (only the affected suite runs), unmatched file (note + skip), pre-push range blocks
+  an untested function.
+- QAgent findings (not hook bugs): `pytest` was declared in requirements-dev.txt but not
+  installed in the venv; `test_worker.py::test_conversion_success_and_cleanup` fails on
+  Windows (expects `/data/heavy.wav`, gets `C:\data\heavy.wav`); the `src/tests.py`
+  (app) suite is very slow locally.
 - NOT yet validated in a real project: that `/test-creator` is actually invocable after
   install, and the quality of the tests it writes. Test in QAgent using the commit hash
   as `rev`, then tag `v0.3.0` (and bump `version` in `pyproject.toml`, still 0.2.0).
 
 ## Next steps
 
-1. Install the skill in QAgent, create its `.claude/test-creator.md`, provoke a block and
-   run `/test-creator`. Fix what shows up, then bump the version and tag `v0.3.0`.
+1. Finish the QAgent trial with `--suite` (+ `stages: [pre-push]`): confirm a block on an
+   untested function in `src/worker.py` (check the `src/` path matching), install the skill,
+   create its `.claude/test-creator.md` and run `/test-creator`. Fix what shows up, then bump the version and tag `v0.3.0`.
 2. In SuiteCRM: replace its local TestCreator skill with the shared one and move its
    project-specific rules (`Test/Unit/`, `Test/_stubs/`, BeanFactory, safety rules) to
    `.claude/test-creator.md`. Delete `bin/check-diff-coverage.sh` if not done yet.
